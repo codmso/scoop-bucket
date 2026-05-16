@@ -1,0 +1,69 @@
+name: Auto-update manifests
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'  # every 6 hours
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update oiia-cat-desktop-pet manifest
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          MANIFEST="bucket/oiia-cat-desktop-pet.json"
+          REPO="codmso/oiia-cat-desktop-pet"
+
+          # Latest release tag, e.g. "v1.2.3" -> "1.2.3"
+          LATEST_TAG=$(gh release view -R "$REPO" --json tagName -q .tagName)
+          LATEST_VERSION="${LATEST_TAG#v}"
+          CURRENT_VERSION=$(jq -r '.version' "$MANIFEST")
+
+          echo "Current: $CURRENT_VERSION  |  Latest: $LATEST_VERSION"
+
+          if [ "$LATEST_VERSION" = "$CURRENT_VERSION" ]; then
+            echo "Already up to date."
+            exit 0
+          fi
+
+          NEW_URL="https://github.com/${REPO}/releases/download/${LATEST_TAG}/Desktop.Pet.${LATEST_VERSION}.exe"
+          echo "Downloading $NEW_URL"
+          curl -sL -o /tmp/app.exe "$NEW_URL"
+
+          if [ ! -s /tmp/app.exe ]; then
+            echo "Download failed or empty file. Skipping."
+            exit 1
+          fi
+
+          NEW_HASH=$(sha256sum /tmp/app.exe | awk '{print $1}')
+          echo "New hash: $NEW_HASH"
+
+          jq --arg v "$LATEST_VERSION" \
+             --arg url "$NEW_URL" \
+             --arg hash "$NEW_HASH" \
+             --arg bin "Desktop.Pet.${LATEST_VERSION}.exe" \
+             '.version = $v | .url = $url | .hash = $hash | .bin = $bin | .shortcuts = [[$bin, "Desktop Pet"]]' \
+             "$MANIFEST" > "$MANIFEST.tmp"
+          mv "$MANIFEST.tmp" "$MANIFEST"
+
+          echo "--- Updated manifest ---"
+          cat "$MANIFEST"
+
+      - name: Commit and push if changed
+        run: |
+          if git diff --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add bucket/
+          git commit -m "Auto-update manifests"
+          git push
