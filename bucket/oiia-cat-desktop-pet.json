@@ -1,14 +1,14 @@
 {
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "A 3D desktop cat (Oiia) that lives on your screen and spins to your typing.",
   "homepage": "https://github.com/codmso/oiia-cat-desktop-pet",
   "license": "MIT",
-  "url": "https://github.com/codmso/oiia-cat-desktop-pet/releases/download/v1.0.1/Desktop.Pet.1.0.1.exe",
-  "hash": "1fbf166448cc40fe48ac1505f76e86297ef099fbaaf4d5250fd95af7b9670684",
-  "bin": "Desktop.Pet.1.0.1.exe",
+  "url": "https://github.com/codmso/oiia-cat-desktop-pet/releases/download/v1.0.3/Desktop.Pet.1.0.3.exe",
+  "hash": "fc365cbc6c476819c3e32422b21e9a243af444d90df4c480d872e3b3b1d9e85f",
+  "bin": "Desktop.Pet.1.0.3.exe",
   "shortcuts": [
     [
-      "Desktop.Pet.1.0.1.exe",
+      "Desktop.Pet.1.0.3.exe",
       "Desktop Pet"
     ]
   ],
